@@ -219,7 +219,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4f53815b173d2d49abebb5c857fbf98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mouseSensitivity: 200
+  mouseSensitivity: 80
   playerBody: {fileID: 8970367089552901926}
 --- !u!1 &6744032881071159797
 GameObject:
@@ -249,7 +249,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.8, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 0.6123, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8298052717915575232}
@@ -296,11 +296,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 6212507879096275176}
-  speed: 12
+  speed: 6
+  sprintSpeed: 8
+  sprintDuration: 4
+  sprintCooldown: 2
   gravity: -29.43
   Groundcheck: {fileID: 5813512725263659887}
   groundDistance: 0.4
   groundMask:
     serializedVersion: 2
     m_Bits: 64
-  jumpHeight: 3
+  jumpHeight: 1.5
+  sprintKey: 304
