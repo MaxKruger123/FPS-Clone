@@ -70,17 +70,21 @@ public class GunScript : MonoBehaviour
             Debug.Log(hit.transform.name);  // Log the name of the object hit
 
             // Check if the object hit has a 'Target' component and apply damage if so
-            Target target = hit.transform.GetComponent<Target>();
+            Target target = hit.transform.GetComponentInParent<Target>();
             if (target != null)
             {
                 target.TakeDamage(damage);  // Apply damage to the target
             }
+            
+            if (target.gameObject.tag == "Zombie")
+            {
+                // Instantiate the impact effect at the hit point, facing the hit surface's normal
+                ParticleSystem impactGO = Instantiate(impact, hit.point, Quaternion.LookRotation(hit.normal));
 
-            // Instantiate the impact effect at the hit point, facing the hit surface's normal
-            ParticleSystem impactGO = Instantiate(impact, hit.point, Quaternion.LookRotation(hit.normal));
-
-            // Destroy the impact effect after 2 seconds
-            Destroy(impactGO.gameObject, 2f);
+                // Destroy the impact effect after 2 seconds
+                Destroy(impactGO.gameObject, 2f);
+            }
+            
         }
     }
 
