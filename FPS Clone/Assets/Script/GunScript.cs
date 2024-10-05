@@ -22,6 +22,7 @@ public class GunScript : MonoBehaviour
 
     public AudioSource source;
     public AudioClip clip;
+    public bool hs;
 
     private void Start()
     {
@@ -102,15 +103,19 @@ public class GunScript : MonoBehaviour
             {
                 // Instantiate the impact effect at the hit point, facing the hit surface's normal
                 ParticleSystem impactGO = Instantiate(impact, hit.point, Quaternion.LookRotation(hit.normal));
+                hs = false;
                 target.TakeDamage(damage);
                 // Destroy the impact effect after 2 seconds
                 Destroy(impactGO.gameObject, 2f);
+                
             } else if (hit.transform.gameObject.tag == "Zombie_Head")
             {
                 ParticleSystem impactGO = Instantiate(impact, hit.point, Quaternion.LookRotation(hit.normal));
+                hs = true; 
                 target.TakeDamage(headShotDamage);
                 // Destroy the impact effect after 2 seconds
                 Destroy(impactGO.gameObject, 2f);
+                
             }
         }
     }
