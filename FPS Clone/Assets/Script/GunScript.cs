@@ -15,12 +15,14 @@ public class GunScript : MonoBehaviour
     private bool isReloading = false;
     public Animator animator;
 
+    public float fireRate = 0.5f;  // Time between shots in seconds
+    private float nextTimeToFire = 0f;
+    public bool isSemiAutomatic = true;  // Set to true for semi-automatic, false for automatic
 
     private void Start()
     {
         currentAmmo = maxAmmo;
-
-        Animator animator = GetComponent<Animator>();
+        animator = GameObject.Find("WeaponHolder").GetComponent<Animator>();
     }
 
     void OnEnable()
@@ -29,25 +31,43 @@ public class GunScript : MonoBehaviour
         animator.SetBool("isReloading", false);
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (isReloading)
         {
             return;
         }
+
         if (currentAmmo <= 0)
         {
             StartCoroutine(Reload());
             return;
         }
-        if (Input.GetButtonDown("Fire1"))
+
+        // Check for semi-automatic or automatic firing
+        if (isSemiAutomatic)
         {
-            Shoot();
+            // Semi-automatic: Fires one shot per click
+            if (Input.GetButtonDown("Fire1") && Time.time >= nextTimeToFire)
+            {
+                nextTimeToFire = Time.time + fireRate;
+                Shoot();
+            }
+        }
+        else
+        {
+            // Automatic: Continuously fires while holding down the fire button
+            if (Input.GetButton("Fire1") && Time.time >= nextTimeToFire)
+            {
+                nextTimeToFire = Time.time + fireRate;
+                Shoot();
+            }
         }
 
-        if (Input.GetKeyDown(KeyCode.R))
+        // Check for reload input
+        if (Input.GetKeyDown(KeyCode.R) && currentAmmo < maxAmmo)
         {
+
             StartCoroutine(Reload());
             return;
         }
@@ -75,8 +95,8 @@ public class GunScript : MonoBehaviour
             {
                 target.TakeDamage(damage);  // Apply damage to the target
             }
-            
-            if (target.gameObject.tag == "Zombie")
+
+            if (hit.transform.gameObject.tag == "Zombie")
             {
                 // Instantiate the impact effect at the hit point, facing the hit surface's normal
                 ParticleSystem impactGO = Instantiate(impact, hit.point, Quaternion.LookRotation(hit.normal));
@@ -84,7 +104,6 @@ public class GunScript : MonoBehaviour
                 // Destroy the impact effect after 2 seconds
                 Destroy(impactGO.gameObject, 2f);
             }
-            
         }
     }
 
