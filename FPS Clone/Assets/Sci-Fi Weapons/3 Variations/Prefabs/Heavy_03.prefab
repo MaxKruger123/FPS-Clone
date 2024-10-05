@@ -51,7 +51,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c18ad9d9b53e61a419df55b235955c9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 10
+  damage: 15
+  headShotDamage: 30
   range: 100
   muzzleFlash: {fileID: 8995339121491110758}
   impact: {fileID: 7667354932540151378, guid: 179cef990a9d15a4a9f1f6f5381f7f97, type: 3}

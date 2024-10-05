@@ -1422,7 +1422,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a7406017c6240c4ab3195fdcdde0990, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 50
+  maxHealth: 100
   currentHealth: 0
   animator: {fileID: 4049838889503152609}
   barImage: {fileID: 0}
@@ -2313,7 +2313,7 @@ GameObject:
   - component: {fileID: 3122738430140794904}
   m_Layer: 0
   m_Name: Base HumanHead
-  m_TagString: Zombie
+  m_TagString: Zombie_Head
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

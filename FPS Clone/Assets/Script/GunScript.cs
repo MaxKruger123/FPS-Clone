@@ -5,6 +5,7 @@ using UnityEngine;
 public class GunScript : MonoBehaviour
 {
     public float damage = 10f;
+    public float headShotDamage = 10f;
     public float range = 100f;
     public ParticleSystem muzzleFlash;
     public ParticleSystem impact;
@@ -18,6 +19,9 @@ public class GunScript : MonoBehaviour
     public float fireRate = 0.5f;  // Time between shots in seconds
     private float nextTimeToFire = 0f;
     public bool isSemiAutomatic = true;  // Set to true for semi-automatic, false for automatic
+
+    public AudioSource source;
+    public AudioClip clip;
 
     private void Start()
     {
@@ -75,6 +79,7 @@ public class GunScript : MonoBehaviour
 
     void Shoot()
     {
+        source.PlayOneShot(clip);
         // Decrease ammo
         currentAmmo--;
 
@@ -87,20 +92,23 @@ public class GunScript : MonoBehaviour
         // Cast a ray from the camera's position, in the direction the camera is looking
         if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
         {
-            Debug.Log(hit.transform.name);  // Log the name of the object hit
+            
 
             // Check if the object hit has a 'Target' component and apply damage if so
             Target target = hit.transform.GetComponentInParent<Target>();
-            if (target != null)
-            {
-                target.TakeDamage(damage);  // Apply damage to the target
-            }
+            
 
             if (hit.transform.gameObject.tag == "Zombie")
             {
                 // Instantiate the impact effect at the hit point, facing the hit surface's normal
                 ParticleSystem impactGO = Instantiate(impact, hit.point, Quaternion.LookRotation(hit.normal));
-
+                target.TakeDamage(damage);
+                // Destroy the impact effect after 2 seconds
+                Destroy(impactGO.gameObject, 2f);
+            } else if (hit.transform.gameObject.tag == "Zombie_Head")
+            {
+                ParticleSystem impactGO = Instantiate(impact, hit.point, Quaternion.LookRotation(hit.normal));
+                target.TakeDamage(headShotDamage);
                 // Destroy the impact effect after 2 seconds
                 Destroy(impactGO.gameObject, 2f);
             }

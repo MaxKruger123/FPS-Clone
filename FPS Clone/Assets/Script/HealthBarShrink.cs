@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class HealthBarShrink : MonoBehaviour
 {
-    public Image barImage;
+    
 
     
 
