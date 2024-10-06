@@ -62,6 +62,16 @@ MonoBehaviour:
   animator: {fileID: 0}
   fireRate: 0.15
   isSemiAutomatic: 0
+  source: {fileID: 0}
+  clip: {fileID: 0}
+  hs: 0
+  kickBackZ: 0.15
+  recoilX: -3
+  recoilY: 3
+  recoilZ: 8
+  snappiness: 20
+  returnAmount: 8
+  initialLocalPosition: {x: 0.113, y: -0.221, z: 0.451}
 --- !u!1 &1311299534469216
 GameObject:
   m_ObjectHideFlags: 0

@@ -16,28 +16,66 @@ public class GunScript : MonoBehaviour
     private bool isReloading = false;
     public Animator animator;
 
-    public float fireRate = 0.5f;  // Time between shots in seconds
+    public float fireRate = 0.5f;
     private float nextTimeToFire = 0f;
-    public bool isSemiAutomatic = true;  // Set to true for semi-automatic, false for automatic
+    public bool isSemiAutomatic = true;
 
     public AudioSource source;
     public AudioClip clip;
     public bool hs;
 
+    public float kickBackZ;
+    public float recoilX;
+    public float recoilY;
+    public float recoilZ;
+    public float snappiness, returnAmount;
+
+    public GameObject pointLight;
+
+    // Expose this variable so you can manually set the starting position in the Inspector
+    public Vector3 initialLocalPosition;
+
+    Vector3 targetRotation, currentRotation, targetPosition, currentPosition;
+
     private void Start()
     {
         currentAmmo = maxAmmo;
         animator = GameObject.Find("WeaponHolder").GetComponent<Animator>();
+
+        // If you haven’t set a value in the Inspector, fall back to the current local position
+        if (initialLocalPosition == Vector3.zero)
+        {
+            initialLocalPosition = transform.localPosition;
+        }
+
+        // Set the initial local position for the gun
+        targetPosition = initialLocalPosition;
+        currentPosition = initialLocalPosition;
+        transform.localPosition = initialLocalPosition;
+
+
+
     }
 
     void OnEnable()
     {
         isReloading = false;
         animator.SetBool("isReloading", false);
+
+        // Reset the gun's position when it’s enabled
+        targetPosition = initialLocalPosition;
+        currentPosition = initialLocalPosition;
+        transform.localPosition = initialLocalPosition;
+
     }
 
     void Update()
     {
+        targetRotation = Vector3.Lerp(targetRotation, Vector3.zero, Time.deltaTime * returnAmount);
+        currentRotation = Vector3.Slerp(currentRotation, targetRotation, Time.fixedDeltaTime * snappiness);
+        transform.localRotation = Quaternion.Euler(currentRotation);
+        back();
+
         if (isReloading)
         {
             return;
@@ -78,6 +116,19 @@ public class GunScript : MonoBehaviour
         }
     }
 
+    void back()
+    {
+        targetPosition = Vector3.Lerp(targetPosition, initialLocalPosition, Time.deltaTime * returnAmount);
+        currentPosition =  Vector3.Lerp(currentPosition,targetPosition, Time.fixedDeltaTime * snappiness);
+        transform.localPosition = currentPosition;
+    }
+
+    public void Recoil()
+    {
+        targetPosition -= new Vector3(0, 0, kickBackZ);
+        targetRotation += new Vector3(recoilX, Random.Range(-recoilY, recoilY), Random.Range(-recoilZ, recoilZ));
+    }
+
     void Shoot()
     {
         source.PlayOneShot(clip);
@@ -89,6 +140,9 @@ public class GunScript : MonoBehaviour
 
         // Create a RaycastHit variable to store information about the object hit by the ray
         RaycastHit hit;
+
+        //Add Random Reocil/Gun Kickback
+        Recoil();
 
         // Cast a ray from the camera's position, in the direction the camera is looking
         if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
