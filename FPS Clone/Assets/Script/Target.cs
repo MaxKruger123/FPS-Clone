@@ -23,6 +23,8 @@ public class Target : MonoBehaviour
     public AudioSource source;
     public AudioClip clip;
 
+    public Canvas EnemyCanvas;
+
     public Canvas playerCanvas;
     public GameObject hitmarkerPrefab;
 
@@ -33,13 +35,14 @@ public class Target : MonoBehaviour
     private float damagedHealthshrinkTimer;
 
     private Canvas enemyCanvas;  // Reference to the enemy's canvas
+    public GameObject enemyWholeCanvas;
 
     public GunScript gunScript;
 
     void Start()
     {
         currentHealth = maxHealth;
-
+        
         source = GameObject.Find("Player(old)").GetComponent<AudioSource>();
 
         // Find the Canvas on the enemy (should be a child of the enemy)
@@ -99,6 +102,7 @@ public class Target : MonoBehaviour
 
         if (currentHealth <= 0)
         {
+           
             Die();
         }
     }
@@ -153,7 +157,8 @@ public class Target : MonoBehaviour
 
     void Die()
     {
-        animator.SetBool("isDead", true);
+        //animator.SetBool("isDead", true);
+        enemyWholeCanvas.SetActive(false);
         Destroy(gameObject, 5f);
     }
 }

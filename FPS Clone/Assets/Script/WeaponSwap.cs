@@ -1,10 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class WeaponSwap : MonoBehaviour
 {
     public int selectedWeapon = 0;  
+    
+
+    public 
     // Start is called before the first frame update
     void Start()
     {

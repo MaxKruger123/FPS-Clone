@@ -1,5 +1,6 @@
+using TMPro;
 using System.Collections;
-using System.Collections.Generic;
+using UnityEngine.VFX;
 using UnityEngine;
 
 public class GunScript : MonoBehaviour
@@ -7,11 +8,14 @@ public class GunScript : MonoBehaviour
     public float damage = 10f;
     public float headShotDamage = 10f;
     public float range = 100f;
-    public ParticleSystem muzzleFlash;
+    public VisualEffect muzzleFlashVFX;
     public ParticleSystem impact;
     public Camera fpsCam;
-    public int maxAmmo = 10;
-    private int currentAmmo;
+
+    public int maxAmmo = 10;         // Max bullets in the current magazine
+    private int currentAmmo;         // Current bullets in the magazine
+    public int stashedAmmo = 50;     // Total stashed ammo available
+
     public float reloadTime = 1f;
     private bool isReloading = false;
     public Animator animator;
@@ -30,7 +34,12 @@ public class GunScript : MonoBehaviour
     public float recoilZ;
     public float snappiness, returnAmount;
 
-    public GameObject pointLight;
+    public float bulletForce;
+
+    public Vector3 thisGun;
+
+    public TextMeshProUGUI currentWeaponAmmo;
+    public TextMeshProUGUI stashedWeaponAmmo;
 
     // Expose this variable so you can manually set the starting position in the Inspector
     public Vector3 initialLocalPosition;
@@ -48,25 +57,16 @@ public class GunScript : MonoBehaviour
             initialLocalPosition = transform.localPosition;
         }
 
-        // Set the initial local position for the gun
         targetPosition = initialLocalPosition;
         currentPosition = initialLocalPosition;
         transform.localPosition = initialLocalPosition;
-
-
-
     }
 
     void OnEnable()
     {
         isReloading = false;
         animator.SetBool("isReloading", false);
-
-        // Reset the gun's position when it’s enabled
-        targetPosition = initialLocalPosition;
-        currentPosition = initialLocalPosition;
         transform.localPosition = initialLocalPosition;
-
     }
 
     void Update()
@@ -81,16 +81,14 @@ public class GunScript : MonoBehaviour
             return;
         }
 
-        if (currentAmmo <= 0)
+        if (currentAmmo <= 0 && stashedAmmo > 0)
         {
             StartCoroutine(Reload());
             return;
         }
 
-        // Check for semi-automatic or automatic firing
         if (isSemiAutomatic)
         {
-            // Semi-automatic: Fires one shot per click
             if (Input.GetButtonDown("Fire1") && Time.time >= nextTimeToFire)
             {
                 nextTimeToFire = Time.time + fireRate;
@@ -99,7 +97,6 @@ public class GunScript : MonoBehaviour
         }
         else
         {
-            // Automatic: Continuously fires while holding down the fire button
             if (Input.GetButton("Fire1") && Time.time >= nextTimeToFire)
             {
                 nextTimeToFire = Time.time + fireRate;
@@ -107,19 +104,29 @@ public class GunScript : MonoBehaviour
             }
         }
 
-        // Check for reload input
-        if (Input.GetKeyDown(KeyCode.R) && currentAmmo < maxAmmo)
+        // Reload when 'R' is pressed and ammo in the magazine is not full
+        if (Input.GetKeyDown(KeyCode.R) && currentAmmo < maxAmmo && stashedAmmo > 0)
         {
-
             StartCoroutine(Reload());
             return;
         }
+
+        currentWeaponAmmo.text = currentAmmo.ToString();
+        stashedWeaponAmmo.text = stashedAmmo.ToString();
+
+        if (currentAmmo <= 0 && stashedAmmo <= 0)
+        {
+            
+            currentWeaponAmmo.text = "0";
+            stashedWeaponAmmo.text = "0";
+        }
+        
     }
 
     void back()
     {
         targetPosition = Vector3.Lerp(targetPosition, initialLocalPosition, Time.deltaTime * returnAmount);
-        currentPosition =  Vector3.Lerp(currentPosition,targetPosition, Time.fixedDeltaTime * snappiness);
+        currentPosition = Vector3.Lerp(currentPosition, targetPosition, Time.fixedDeltaTime * snappiness);
         transform.localPosition = currentPosition;
     }
 
@@ -131,47 +138,61 @@ public class GunScript : MonoBehaviour
 
     void Shoot()
     {
-        source.PlayOneShot(clip);
-        // Decrease ammo
-        currentAmmo--;
-
-        // Play muzzle flash effect
-        muzzleFlash.Play();
-
-        // Create a RaycastHit variable to store information about the object hit by the ray
-        RaycastHit hit;
-
-        //Add Random Reocil/Gun Kickback
-        Recoil();
-
-        // Cast a ray from the camera's position, in the direction the camera is looking
-        if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
+        if (currentAmmo >= 0)
         {
-            
+            source.PlayOneShot(clip);
+            currentAmmo--;
 
-            // Check if the object hit has a 'Target' component and apply damage if so
-            Target target = hit.transform.GetComponentInParent<Target>();
-            
+            if (muzzleFlashVFX != null)
+            {
+                muzzleFlashVFX.Play();
+            }
 
-            if (hit.transform.gameObject.tag == "Zombie")
+            RaycastHit hit;
+            Recoil();
+
+            if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
             {
-                // Instantiate the impact effect at the hit point, facing the hit surface's normal
-                ParticleSystem impactGO = Instantiate(impact, hit.point, Quaternion.LookRotation(hit.normal));
-                hs = false;
-                target.TakeDamage(damage);
-                // Destroy the impact effect after 2 seconds
-                Destroy(impactGO.gameObject, 2f);
-                
-            } else if (hit.transform.gameObject.tag == "Zombie_Head")
-            {
-                ParticleSystem impactGO = Instantiate(impact, hit.point, Quaternion.LookRotation(hit.normal));
-                hs = true; 
-                target.TakeDamage(headShotDamage);
-                // Destroy the impact effect after 2 seconds
-                Destroy(impactGO.gameObject, 2f);
-                
+                Target target = hit.transform.GetComponentInParent<Target>();
+                Zombie zombie = hit.transform.GetComponentInParent<Zombie>();
+
+                if (hit.transform.gameObject.tag == "Zombie")
+                {
+                    ParticleSystem impactGO = Instantiate(impact, hit.point, Quaternion.LookRotation(hit.normal));
+                    hs = false;
+                    target.TakeDamage(damage);
+
+                    if (zombie != null && target.currentHealth <= 0)
+                    {
+                        Vector3 forceDirection = zombie.transform.position - Camera.main.transform.position;
+                        forceDirection.y = 1;
+                        forceDirection.Normalize();
+                        Vector3 force = bulletForce * forceDirection;
+                        zombie.TriggerRagdoll(force, hit.point);
+                    }
+
+                    Destroy(impactGO.gameObject, 2f);
+                }
+                else if (hit.transform.gameObject.tag == "Zombie_Head")
+                {
+                    ParticleSystem impactGO = Instantiate(impact, hit.point, Quaternion.LookRotation(hit.normal));
+                    hs = true;
+                    target.TakeDamage(headShotDamage);
+
+                    if (zombie != null && target.currentHealth <= 0)
+                    {
+                        Vector3 forceDirection = zombie.transform.position - Camera.main.transform.position;
+                        forceDirection.y = 1;
+                        forceDirection.Normalize();
+                        Vector3 force = bulletForce * forceDirection;
+                        zombie.TriggerRagdoll(force, hit.point);
+                    }
+
+                    Destroy(impactGO.gameObject, 2f);
+                }
             }
         }
+        
     }
 
     IEnumerator Reload()
@@ -180,7 +201,22 @@ public class GunScript : MonoBehaviour
         animator.SetBool("isReloading", true);
         Debug.Log("Reloading...");
         yield return new WaitForSeconds(reloadTime);
-        currentAmmo = maxAmmo;
+
+        // Calculate the number of bullets needed to fill the magazine
+        int bulletsToReload = maxAmmo - currentAmmo;
+
+        // Check if there are enough bullets in stashedAmmo
+        if (stashedAmmo >= bulletsToReload)
+        {
+            currentAmmo += bulletsToReload;  // Reload full magazine
+            stashedAmmo -= bulletsToReload;  // Decrease stashed ammo by that amount
+        }
+        else
+        {
+            currentAmmo += stashedAmmo;      // Reload the remaining stashed ammo
+            stashedAmmo = 0;                 // No stashed ammo left
+        }
+
         isReloading = false;
         animator.SetBool("isReloading", false);
     }
