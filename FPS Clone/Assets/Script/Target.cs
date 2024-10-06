@@ -20,6 +20,11 @@ public class Target : MonoBehaviour
     public Image healthBar;
     public Image damagedBar;
     public Color damagedColor;
+    public AudioSource source;
+    public AudioClip clip;
+
+    public Canvas playerCanvas;
+    public GameObject hitmarkerPrefab;
 
     public GameObject damageNumberPrefab;  // Drag your damage number prefab here in Unity
     public Transform damageNumberSpawnPoint;  // Optional, but a point where the damage number spawns above the enemy
@@ -35,6 +40,8 @@ public class Target : MonoBehaviour
     {
         currentHealth = maxHealth;
 
+        source = GameObject.Find("Player(old)").GetComponent<AudioSource>();
+
         // Find the Canvas on the enemy (should be a child of the enemy)
         enemyCanvas = GetComponentInChildren<Canvas>();
         gunScript = GameObject.Find("Rifle").GetComponent<GunScript>();
@@ -43,6 +50,8 @@ public class Target : MonoBehaviour
         {
             Debug.LogError("Enemy Canvas not found! Make sure the Canvas is a child of the enemy object.");
         }
+
+        playerCanvas = GameObject.FindWithTag("PlayerCanvas").GetComponent<Canvas>();
     }
 
     void Update()
@@ -64,6 +73,7 @@ public class Target : MonoBehaviour
     public void TakeDamage(float amount)
     {
 
+
         if (weapon.selectedWeapon == 0)
         {
             gunScript = GameObject.Find("Rifle").GetComponent<GunScript>();
@@ -78,9 +88,14 @@ public class Target : MonoBehaviour
 
         damagedHealthshrinkTimer = 0.2f;
         currentHealth -= amount;
+        source.PlayOneShot(clip);
+
+
         
         // Display damage number
         ShowDamageNumber(amount);
+        //Display Hit Marker
+        ShowHitmarker();
 
         if (currentHealth <= 0)
         {
@@ -116,6 +131,24 @@ public class Target : MonoBehaviour
         }
         // Optionally destroy the damage number after a short time
         Destroy(damageNumber, 1f);  // Destroy after 1 second
+    }
+
+    private void ShowHitmarker()
+    {
+        if (playerCanvas == null)
+        {
+            Debug.LogError("Player canvas not set!");
+            return;
+        }
+
+        // Instantiate the hitmarker prefab on the player's canvas
+        GameObject hitmarker = Instantiate(hitmarkerPrefab, playerCanvas.transform);
+
+        // Set the hitmarker to the center of the player's canvas
+        hitmarker.transform.localPosition = Vector3.zero;
+
+        // Optionally destroy the hitmarker after a short time
+        Destroy(hitmarker, 0.25f);  // Destroy after 0.25 seconds
     }
 
     void Die()
