@@ -12,6 +12,8 @@ public class Zombie : MonoBehaviour
         Ragdoll
     }
 
+    public Limb[] limbs;
+
     public Target target;
     public CharacterController characterController;
 
@@ -63,7 +65,6 @@ public class Zombie : MonoBehaviour
             rb.isKinematic = true;
         }
     }
-
     private void EnableRagdoll()
     {
         animator.enabled = false;
@@ -100,5 +101,15 @@ public class Zombie : MonoBehaviour
     private void RagdollBehaviour()
     {
 
+    }
+
+    public void StopLimbs()
+    {
+        foreach (Limb limb in limbs)
+        {
+            limb.gameObject.tag = "Dead";
+            
+            
+        }
     }
 }

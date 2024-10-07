@@ -41,6 +41,8 @@ public class GunScript : MonoBehaviour
     public TextMeshProUGUI currentWeaponAmmo;
     public TextMeshProUGUI stashedWeaponAmmo;
 
+    public bool isDead;
+
     // Expose this variable so you can manually set the starting position in the Inspector
     public Vector3 initialLocalPosition;
 
@@ -162,6 +164,8 @@ public class GunScript : MonoBehaviour
                     hs = false;
                     target.TakeDamage(damage);
 
+                    
+
                     if (zombie != null && target.currentHealth <= 0)
                     {
                         Vector3 forceDirection = zombie.transform.position - Camera.main.transform.position;
@@ -169,6 +173,14 @@ public class GunScript : MonoBehaviour
                         forceDirection.Normalize();
                         Vector3 force = bulletForce * forceDirection;
                         zombie.TriggerRagdoll(force, hit.point);
+
+                        if (hit.transform.GetComponent<Limb>())
+                        {
+                            Limb limb = hit.transform.GetComponent<Limb>();
+                            limb.GetHit();
+                            zombie.StopLimbs();
+
+                        }
                     }
 
                     Destroy(impactGO.gameObject, 2f);
@@ -186,6 +198,14 @@ public class GunScript : MonoBehaviour
                         forceDirection.Normalize();
                         Vector3 force = bulletForce * forceDirection;
                         zombie.TriggerRagdoll(force, hit.point);
+
+                        if (hit.transform.GetComponent<Limb>())
+                        {
+                            Limb limb = hit.transform.GetComponent<Limb>();
+                            limb.GetHit();
+                            zombie.StopLimbs();
+
+                        }
                     }
 
                     Destroy(impactGO.gameObject, 2f);

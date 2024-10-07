@@ -7,6 +7,7 @@ TagManager:
   - Zombie
   - Zombie_Head
   - PlayerCanvas
+  - Dead
   layers:
   - Default
   - TransparentFX

@@ -39,6 +39,8 @@ public class Target : MonoBehaviour
 
     public GunScript gunScript;
 
+    private Limb limb;
+
     void Start()
     {
         currentHealth = maxHealth;
@@ -159,6 +161,7 @@ public class Target : MonoBehaviour
     {
         //animator.SetBool("isDead", true);
         enemyWholeCanvas.SetActive(false);
-        Destroy(gameObject, 5f);
+        
+        Destroy(gameObject, 25f);
     }
 }
